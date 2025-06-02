@@ -1,103 +1,181 @@
-import Image from "next/image";
+'use client';
+
+import { Scene } from '@/components/canvas/Scene';
+import { Leva } from 'leva';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import {
+  CameraIcon,
+  SunIcon,
+  MoonIcon,
+  CubeTransparentIcon,
+  SparklesIcon,
+  ViewfinderCircleIcon
+} from '@heroicons/react/24/outline';
+import { useState, useCallback } from 'react';
+
+const MotionButton = motion(Button);
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [isDark, setIsDark] = useState(true);
+  const [showHelp, setShowHelp] = useState(false);
+  
+  const handleToggleTheme = useCallback(() => {
+    setIsDark(prev => !prev);
+    // Theme change would be handled by the Scene component
+  }, []);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const handleResetView = useCallback(() => {
+    // Reset camera view would be handled by the Scene component
+  }, []);
+
+  const handleScreenshot = useCallback(() => {
+    // Screenshot feature would be implemented here
+  }, []);
+
+  return (
+    <main className={`w-full h-screen relative overflow-hidden transition-colors duration-700 ${
+      isDark ? 'bg-gradient-to-b from-black to-indigo-950' : 'bg-gradient-to-b from-blue-50 to-indigo-100'
+    }`}>
+      <Leva collapsed />
+      
+      {/* Help Overlay */}
+      {showHelp && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="absolute inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center"
+          onClick={() => setShowHelp(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="bg-white/10 backdrop-blur-md rounded-lg p-6 max-w-md mx-4"
+            onClick={e => e.stopPropagation()}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            <h2 className="text-2xl font-bold text-white mb-4">How to Navigate</h2>
+            <ul className="space-y-3 text-white/90">
+              <li className="flex items-center gap-2">
+                <ViewfinderCircleIcon className="w-5 h-5" />
+                Click and drag to orbit around the island
+              </li>
+              <li className="flex items-center gap-2">
+                <CubeTransparentIcon className="w-5 h-5" />
+                Scroll to zoom in/out
+              </li>
+              <li className="flex items-center gap-2">
+                <SparklesIcon className="w-5 h-5" />
+                Hover over elements to see details
+              </li>
+            </ul>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Scene */}
+      <Scene />
+      
+      {/* UI Overlay */}
+      <div className="absolute inset-0 pointer-events-none">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute top-0 left-0 w-full p-6 flex justify-between items-start pointer-events-auto"
+        >
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
           >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+            <h1 className={`text-4xl font-bold mb-2 tracking-tight ${
+              isDark ? 'text-white' : 'text-gray-900'
+            }`}>
+              Floating Island
+              <span className={isDark ? 'text-indigo-400' : 'text-indigo-600'}>
+                {' '}Showcase
+              </span>
+            </h1>
+            <p className={`text-base ${
+              isDark ? 'text-white/70' : 'text-gray-600'
+            }`}>
+              Explore this magical 3D environment
+            </p>
+          </motion.div>
+
+          <div className="flex gap-3">
+            <MotionButton
+              variant="glow"
+              size="icon"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              onClick={() => setShowHelp(true)}
+            >
+              <SparklesIcon className="h-5 w-5" />
+            </MotionButton>
+            <MotionButton
+              variant="glow"
+              size="icon"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              onClick={handleScreenshot}
+            >
+              <CameraIcon className="h-5 w-5" />
+            </MotionButton>
+            <MotionButton
+              variant="glow"
+              size="icon"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              onClick={handleToggleTheme}
+            >
+              {isDark ? (
+                <SunIcon className="h-5 w-5" />
+              ) : (
+                <MoonIcon className="h-5 w-5" />
+              )}
+            </MotionButton>
+          </div>
+        </motion.div>
+
+        {/* Bottom Controls */}
+        <motion.div
+          className="absolute bottom-0 left-0 w-full p-6 flex justify-center pointer-events-auto"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          <div className={`${
+            isDark 
+              ? 'bg-white/10 border-white/20' 
+              : 'bg-white/60 border-gray-200'
+          } backdrop-blur-md rounded-full px-8 py-4 flex gap-4 items-center border`}>
+            <p className={`text-sm ${
+              isDark ? 'text-white/90' : 'text-gray-700'
+            }`}>
+              Use mouse or touch to explore
+            </p>
+            <div className={`w-px h-4 ${
+              isDark ? 'bg-white/20' : 'bg-gray-300'
+            }`} />
+            <button
+              className={`text-sm transition-colors ${
+                isDark 
+                  ? 'text-white/90 hover:text-white' 
+                  : 'text-gray-700 hover:text-gray-900'
+              }`}
+              onClick={handleResetView}
+            >
+              Reset View
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    </main>
   );
 }
