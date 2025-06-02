@@ -1,27 +1,46 @@
 {
-  "name": "floating-island-showcase",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "next": "15.3.3"
-  },
-  "devDependencies": {
-    "typescript": "^5",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
-    "eslint": "^9",
-    "eslint-config-next": "15.3.3",
-    "@eslint/eslintrc": "^3"
-  }
+    "name": "floating-island-showcase",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev --turbopack",
+        "build": "next build",
+        "start": "next start",
+        "lint": "next lint"
+    },
+    "dependencies": {
+        "@gltf-transform/core": "^4.1.4",
+        "@heroicons/react": "^2.2.0",
+        "@react-spring/three": "^10.0.1",
+        "@react-three/drei": "^10.1.2",
+        "@react-three/fiber": "^9.1.2",
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
+        "draco3d": "^1.5.7",
+        "framer-motion": "^12.15.0",
+        "gltf-pipeline": "^4.1.0",
+        "gsap": "^3.13.0",
+        "leva": "^0.10.0",
+        "next": "15.3.3",
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0",
+        "react-error-boundary": "^6.0.0",
+        "tailwind-merge": "^3.3.0",
+        "tailwindcss-animate": "^1.0.7",
+        "three": "^0.177.0"
+    },
+    "devDependencies": {
+        "@eslint/eslintrc": "^3",
+        "@gltf-transform/cli": "^4.1.4",
+        "@tailwindcss/postcss": "^4",
+        "@types/node": "^20",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "@types/three": "^0.177.0",
+        "eslint": "^9",
+        "eslint-config-next": "15.3.3",
+        "tailwindcss": "^4",
+        "typescript": "^5"
+    },
+    "type": "module"
 }
