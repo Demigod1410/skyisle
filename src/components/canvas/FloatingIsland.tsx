@@ -61,8 +61,8 @@ export function FloatingIsland() {
   }, []);
 
   return (
-    <>
-      <Particles count={200} color="#4a9eff" />
+    <> color="#4a9eff"
+      <Particles count={200} />
       
       <group ref={group}>
         {/* Base island */}
