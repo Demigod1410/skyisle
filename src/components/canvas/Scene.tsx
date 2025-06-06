@@ -1,10 +1,11 @@
-import { Environment, Html, OrbitControls, PerspectiveCamera, SoftShadows, Stars } from '@react-three/drei';
+import { Environment, Html, OrbitControls, PerspectiveCamera, SoftShadows, Stars, Sky } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { FloatingIsland } from './FloatingIsland';
 import { useControls } from 'leva';
 import { LoadingScreen } from '../LoadingScreen';
+import * as THREE from 'three';
 
 // Error fallback component rendered outside Canvas
 function ErrorFallbackOutside() {
@@ -55,19 +56,28 @@ function SceneErrorIndicator() {
   );
 }
 
-export function Scene() {
+export interface SceneProps {
+  isDarkMode?: boolean;
+}
+
+export function Scene({ isDarkMode = true }: SceneProps) {
   const { 
     intensity, 
     ambient,
     shadows 
-  } = useControls({
-    intensity: { value: 1, min: 0, max: 2, step: 0.1 },
-    ambient: { value: 0.5, min: 0, max: 1, step: 0.1 },
+  } = useControls("lighting", {
+    intensity: { value: isDarkMode ? 0.8 : 1.5, min: 0, max: 2, step: 0.1 },
+    ambient: { value: isDarkMode ? 0.3 : 0.7, min: 0, max: 1, step: 0.1 },
     shadows: true
   });
 
+  // Dynamic background color based on theme
+  const bgGradient = isDarkMode 
+    ? "from-black to-gray-900" 
+    : "from-blue-300 to-sky-500";
+
   return (
-    <div className="w-full h-screen bg-gradient-to-b from-black to-gray-900">
+    <div className={`w-full h-screen bg-gradient-to-b ${bgGradient} transition-colors duration-700`}>
       <ErrorBoundary FallbackComponent={ErrorFallbackOutside}>
         <Canvas shadows={shadows}>
           <Suspense fallback={<LoadingScreen />}>
@@ -79,27 +89,71 @@ export function Scene() {
               maxPolarAngle={Math.PI / 2}
               minDistance={5}
               maxDistance={15}
-            />
-
-            {/* Lighting */}
-            <hemisphereLight intensity={ambient} groundColor="#000000" />
-            <directionalLight
-              castShadow
-              position={[2.5, 8, 5]}
-              intensity={intensity}
-              shadow-mapSize={[1024, 1024]}
-            >
-              <orthographicCamera attach="shadow-camera" args={[-10, 10, 10, -10]} />
-            </directionalLight>
-
-            {/* Environment and Effects */}
+            />            {/* Lighting - dynamic based on theme */}
+            {isDarkMode ? (
+              /* Night lighting */
+              <>
+                <hemisphereLight intensity={ambient * 0.5} groundColor="#000010" color="#1a237e" />
+                <directionalLight
+                  castShadow
+                  position={[-5, 8, -2]}
+                  intensity={intensity * 0.4}
+                  shadow-mapSize={[1024, 1024]}
+                  color="#b1c5ff"
+                >
+                  <orthographicCamera attach="shadow-camera" args={[-10, 10, 10, -10]} />
+                </directionalLight>
+                <pointLight position={[0, 3, 0]} intensity={0.3} color="#5d63ff" distance={5} />
+              </>
+            ) : (
+              /* Day lighting */
+              <>
+                <hemisphereLight intensity={ambient} groundColor="#3e5f8a" color="#ffeeb1" />
+                <directionalLight
+                  castShadow
+                  position={[2.5, 8, 5]}
+                  intensity={intensity}
+                  shadow-mapSize={[2048, 2048]}
+                  color="#fffbf0"
+                >
+                  <orthographicCamera attach="shadow-camera" args={[-10, 10, 10, -10]} />
+                </directionalLight>
+                <pointLight position={[0, 3, 0]} intensity={0.2} color="#ffffe0" distance={5} />
+              </>
+            )}{/* Environment and Effects */}
             <SoftShadows size={2.5} samples={16} focus={0} />
-            <Environment preset="sunset" />
-            <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
             
-            {/* Scene Content */}
+            {/* Dynamic environment based on theme */}
+            {isDarkMode ? (
+              <>
+                <Environment preset="night" />
+                <Stars radius={100} depth={50} count={5000} factor={4} saturation={0.5} fade speed={1} />
+                <ambientLight intensity={0.1} color="#2a365c" />
+                {/* Moon light */}
+                <directionalLight 
+                  position={[-5, 5, -5]} 
+                  intensity={0.1} 
+                  color="#a9c0ff" 
+                />
+              </>
+            ) : (
+              <>
+                <Environment preset="sunset" />
+                <Sky 
+                  distance={45000} 
+                  sunPosition={[10, 5, 10]} 
+                  turbidity={8}
+                  rayleigh={6}
+                  mieCoefficient={0.005}
+                  mieDirectionalG={0.7}
+                />
+                {/* Warmer ambient light for daytime */}
+                <ambientLight intensity={0.4} color="#fffaf0" />
+              </>
+            )}
+              {/* Scene Content */}
             <ErrorBoundary FallbackComponent={SceneErrorIndicator}>
-              <FloatingIsland />
+              <FloatingIsland isDarkMode={isDarkMode} />
             </ErrorBoundary>
           </Suspense>
         </Canvas>
