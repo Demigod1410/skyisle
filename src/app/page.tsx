@@ -22,22 +22,25 @@ export default function Home() {
   
   const handleToggleTheme = useCallback(() => {
     setIsDark(prev => !prev);
-    // Theme change would be handled by the Scene component
+    // Theme change is now passed to the Scene component
   }, []);
 
   const handleResetView = useCallback(() => {
-    // Reset camera view would be handled by the Scene component
+    // This would reset the camera view - we'll leave this for future implementation
+    console.log("Reset view clicked");
   }, []);
 
   const handleScreenshot = useCallback(() => {
-    // Screenshot feature would be implemented here
+    // This would take a screenshot - we'll leave this for future implementation
+    console.log("Screenshot clicked");
   }, []);
 
   return (
-    <main className={`w-full h-screen relative overflow-hidden transition-colors duration-700 ${
-      isDark ? 'bg-gradient-to-b from-black to-indigo-950' : 'bg-gradient-to-b from-blue-50 to-indigo-100'
-    }`}>
+    <main className="w-full h-screen relative overflow-hidden">
       <Leva collapsed />
+      
+      {/* Pass isDark prop to Scene component */}
+      <Scene isDarkMode={isDark} />
       
       {/* Help Overlay */}
       {showHelp && (
@@ -128,17 +131,42 @@ export default function Home() {
             </MotionButton>
             <MotionButton
               variant="glow"
-              size="icon"
+              className={`relative overflow-hidden transition-all duration-500 ${
+                isDark 
+                  ? "bg-indigo-900/50 border-indigo-600/50" 
+                  : "bg-amber-50/70 border-amber-200/70"
+              }`}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
               onClick={handleToggleTheme}
             >
-              {isDark ? (
-                <SunIcon className="h-5 w-5" />
-              ) : (
-                <MoonIcon className="h-5 w-5" />
-              )}
+              <motion.div
+                className="absolute inset-0 z-0"
+                initial={false}
+                animate={{
+                  background: isDark 
+                    ? "linear-gradient(to bottom, #0f172a, #1e2d52)" 
+                    : "linear-gradient(to bottom, #fdba74, #fde68a)"
+                }}
+              />
+              <motion.div 
+                className="relative z-10 flex items-center gap-2 px-3"
+                initial={false}
+                animate={{ color: isDark ? "#e3e8ff" : "#b45309" }}
+              >
+                {isDark ? (
+                  <>
+                    <MoonIcon className="h-4 w-4" />
+                    <span className="text-xs font-medium">Night</span>
+                  </>
+                ) : (
+                  <>
+                    <SunIcon className="h-4 w-4" />
+                    <span className="text-xs font-medium">Day</span>
+                  </>
+                )}
+              </motion.div>
             </MotionButton>
           </div>
         </motion.div>
