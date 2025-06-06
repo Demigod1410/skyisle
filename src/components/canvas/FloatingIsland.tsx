@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
-import { useSpring, animated } from '@react-spring/three';
+import { useSpring, animated, config } from '@react-spring/three';
 import gsap from 'gsap';
 import * as THREE from 'three';
 import { Tooltip } from './Tooltip';
 import { Particles } from './Particles';
 
-export function FloatingIsland() {
+export interface FloatingIslandProps {
+  isDarkMode?: boolean;
+}
+
+export function FloatingIsland({ isDarkMode = true }: FloatingIslandProps) {
   const group = useRef<THREE.Group>(null);
   const tl = useRef<gsap.core.Timeline | undefined>(undefined);
   const [hoveredItem, setHoveredItem] = useState<{ type: string; position: THREE.Vector3 } | null>(null);
@@ -15,6 +19,20 @@ export function FloatingIsland() {
     house: false,
     trees: Array(3).fill(false)
   });
+
+  // Material colors based on theme
+  const materialColors = {
+    island: isDarkMode ? "#3a3f52" : "#4a5568",
+    grass: isDarkMode ? "#2f4f4f" : "#48bb78",
+    house: isDarkMode ? "#d1d5db" : "#e2e8f0",
+    roof: isDarkMode ? "#991b1b" : "#fc8181",
+    trunk: isDarkMode ? "#4c1d95" : "#805ad5",
+    leaves: isDarkMode ? "#1e4620" : "#48bb78",
+    windows: isDarkMode ? "#1e40af" : "#63b3ed"
+  };
+  
+  const particleCount = isDarkMode ? 350 : 150;
+  const particleColor = isDarkMode ? "#6366f1" : "#93c5fd";
 
   // Spring animations for each element
   const islandSpring = useSpring({
@@ -60,9 +78,8 @@ export function FloatingIsland() {
     };
   }, []);
 
-  return (
-    <> color="#4a9eff"
-      <Particles count={200} />
+  return (    <>
+      <Particles count={particleCount} color={particleColor} />
       
       <group ref={group}>
         {/* Base island */}
@@ -83,7 +100,7 @@ export function FloatingIsland() {
         >
           <cylinderGeometry args={[2, 3, 1, 16]} />
           <meshPhysicalMaterial 
-            color="#4a5568"
+            color={materialColors.island}
             roughness={0.8}
             metalness={0.2}
             clearcoat={0.3}
@@ -95,7 +112,7 @@ export function FloatingIsland() {
         <mesh receiveShadow castShadow position={[0, 0.5, 0]}>
           <cylinderGeometry args={[2.2, 2, 0.2, 16]} />
           <meshPhysicalMaterial
-            color="#48bb78"
+            color={materialColors.grass}
             roughness={0.5}
             metalness={0.1}
             clearcoat={0.4}
@@ -121,7 +138,7 @@ export function FloatingIsland() {
           <mesh castShadow>
             <boxGeometry args={[1, 1, 1]} />
             <meshPhysicalMaterial
-              color="#e2e8f0"
+              color={materialColors.house}
               roughness={0.3}
               metalness={0.2}
               clearcoat={0.5}
@@ -132,7 +149,7 @@ export function FloatingIsland() {
           <mesh castShadow position={[0, 0.7, 0]}>
             <coneGeometry args={[0.8, 0.8, 4]} />
             <meshPhysicalMaterial
-              color="#fc8181"
+              color={materialColors.roof}
               roughness={0.4}
               metalness={0.1}
               clearcoat={0.3}
@@ -170,7 +187,7 @@ export function FloatingIsland() {
             <mesh castShadow>
               <cylinderGeometry args={[0.1, 0.1, 0.5]} />
               <meshPhysicalMaterial
-                color="#805ad5"
+                color={materialColors.trunk}
                 roughness={0.6}
                 metalness={0.1}
                 clearcoat={0.2}
@@ -181,7 +198,7 @@ export function FloatingIsland() {
             <mesh castShadow position={[0, 0.5, 0]}>
               <coneGeometry args={[0.4, 1, 8]} />
               <meshPhysicalMaterial
-                color="#48bb78"
+                color={materialColors.leaves}
                 roughness={0.4}
                 metalness={0.1}
                 clearcoat={0.3}
