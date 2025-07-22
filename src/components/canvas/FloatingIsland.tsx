@@ -24,34 +24,103 @@ export function FloatingIsland({ isDarkMode = true }: FloatingIslandProps) {
     trees: Array(3).fill(false),
   });
 
-  // Load the house GLTF model
-  const { scene: houseModel } = useGLTF("/assets/house.gltf");
-  
-  // Skip material processing to avoid shader issues
-  useEffect(() => {
-    if (houseModel) {
-      houseModel.traverse((child: any) => {
-        if (child.isMesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-        }
-      });
-    }
-  }, [houseModel]);
+  // Load GLTF model with error handling
+  const [houseModel, setHouseModel] = useState<THREE.Object3D | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Material colors based on theme
-  const materialColors = {
-    island: isDarkMode ? "#3a3f52" : "#4a5568",
-    grass: isDarkMode ? "#2f4f4f" : "#48bb78",
-    house: isDarkMode ? "#d1d5db" : "#e2e8f0",
-    roof: isDarkMode ? "#991b1b" : "#fc8181",
-    trunk: isDarkMode ? "#4c1d95" : "#805ad5",
-    leaves: isDarkMode ? "#1e4620" : "#48bb78",
-    windows: isDarkMode ? "#1e40af" : "#63b3ed",
-  };
+  // Load the model directly using Three.js loader
+  useEffect(() => {
+    // Verify we're in browser environment
+    if (typeof window === 'undefined') return;
+
+    // Import the loader dynamically to avoid SSR issues
+    import('three/examples/jsm/loaders/GLTFLoader').then(({ GLTFLoader }) => {
+      import('three/examples/jsm/loaders/DRACOLoader').then(({ DRACOLoader }) => {
+        const loader = new GLTFLoader();
+        const dracoLoader = new DRACOLoader();
+        dracoLoader.setDecoderPath('/draco/');
+        loader.setDRACOLoader(dracoLoader);
+        
+        // Load the model
+        loader.load(
+          '/assets/house.gltf',
+          (gltf) => {
+            const model = gltf.scene;
+            
+            // Replace all MeshStandardMaterials with MeshBasicMaterials
+            model.traverse((object) => {
+              if (object instanceof THREE.Mesh && object.material) {
+                if (Array.isArray(object.material)) {
+                  object.material = object.material.map(mat => {
+                    if (mat && (mat.type === 'MeshStandardMaterial' || mat.name === 'Outline' || mat.name === 'Material')) {
+                      // Create a color instance to manipulate
+                      const originalColor = mat.color || new THREE.Color(0xffffff);
+                      const dampedColor = new THREE.Color(
+                        originalColor.r * 0.7, // Reduce red component by 30%
+                        originalColor.g * 0.7, // Reduce green component by 30%
+                        originalColor.b * 0.7  // Reduce blue component by 30%
+                      );
+                      
+                      return new THREE.MeshBasicMaterial({
+                        color: dampedColor,
+                        map: mat.map || null,
+                        transparent: !!mat.transparent,
+                        opacity: mat.opacity !== undefined ? mat.opacity : 1.0,
+                        side: mat.side || THREE.FrontSide
+                      });
+                    }
+                    return mat;
+                  });
+                } else if (object.material && (object.material.type === 'MeshStandardMaterial' || 
+                           object.material.name === 'Outline' || object.material.name === 'Material')) {
+                  // Create a color instance to manipulate
+                  const originalColor = object.material.color || new THREE.Color(0xffffff);
+                  const dampedColor = new THREE.Color(
+                    originalColor.r * 0.7, // Reduce red component by 30%
+                    originalColor.g * 0.7, // Reduce green component by 30%
+                    originalColor.b * 0.7  // Reduce blue component by 30%
+                  );
+                  
+                  object.material = new THREE.MeshBasicMaterial({
+                    color: dampedColor,
+                    map: object.material.map || null,
+                    transparent: !!object.material.transparent,
+                    opacity: object.material.opacity !== undefined ? object.material.opacity : 1.0,
+                    side: object.material.side || THREE.FrontSide
+                  });
+                }
+              }
+            });
+            
+            setHouseModel(model as THREE.Object3D);
+            setIsLoading(false);
+            console.log('Model loaded successfully');
+          },
+          // Progress callback
+          (xhr) => {
+            console.log(`Model ${(xhr.loaded / xhr.total) * 100}% loaded`);
+          },
+          // Error callback
+          (error) => {
+            console.error('Error loading model:', error);
+            setLoadError(`Failed to load model: ${error.message}`);
+            setIsLoading(false);
+          }
+        );
+      }).catch(err => {
+        console.error('Failed to load DRACOLoader:', err);
+        setLoadError('Failed to load DRACOLoader');
+        setIsLoading(false);
+      });
+    }).catch(err => {
+      console.error('Failed to load GLTFLoader:', err);
+      setLoadError('Failed to load GLTFLoader');
+      setIsLoading(false);
+    });
+  }, []);
 
   const particleCount = isDarkMode ? 350 : 150;
-  const particleColor = isDarkMode ? "#6366f1" : "#93c5fd";
 
   // Spring animations for each element
   const islandSpring = useSpring({
@@ -123,29 +192,27 @@ export function FloatingIsland({ isDarkMode = true }: FloatingIslandProps) {
             setHoveredItem(null);
           }}
         >
-          {houseModel ? (
-            /* GLTF House Model */
+          {isLoading ? (
+            // Loading indicator
+            <mesh>
+              <sphereGeometry args={[0.5, 16, 16]} />
+              <meshBasicMaterial color={isDarkMode ? "#334155" : "#94a3b8"} wireframe />
+            </mesh>
+          ) : loadError ? (
+            // Error indicator
+            <mesh>
+              <boxGeometry args={[1, 1, 1]} />
+              <meshBasicMaterial color="red" />
+            </mesh>
+          ) : houseModel ? (
+            // Loaded model
             <primitive
-              object={houseModel.clone()}
-              scale={[0.5, 0.5, 0.5]}
+              object={houseModel as unknown as THREE.Object3D}
+              scale={[0.2, 0.2, 0.2]}
               position={[0, 0, 0]}
               rotation={[0, 0, 0]}
             />
-          ) : (
-            /* Fallback simple house */
-            <group>
-              {/* House base */}
-              <mesh castShadow receiveShadow>
-                <boxGeometry args={[1, 1, 1]} />
-                <meshLambertMaterial color={new THREE.Color(materialColors.house)} />
-              </mesh>
-              {/* Roof */}
-              <mesh castShadow receiveShadow position={[0, 0.7, 0]}>
-                <coneGeometry args={[0.8, 0.8, 4]} />
-                <meshLambertMaterial color={new THREE.Color(materialColors.roof)} />
-              </mesh>
-            </group>
-          )}
+          ) : null}
         </animated.group>
 
         {/* Tooltip */}
@@ -157,5 +224,4 @@ export function FloatingIsland({ isDarkMode = true }: FloatingIslandProps) {
   );
 }
 
-// Preload the GLTF model
-useGLTF.preload("/assets/house.gltf");
+// We're handling the loading directly with GLTFLoader
