@@ -5,7 +5,9 @@ import gsap from 'gsap';
 import * as THREE from 'three';
 import { Tooltip } from './Tooltip';
 import { Particles } from './Particles';
-import {a} from '@react-spring/three';
+import { a } from '@react-spring/three';
+import { useModel } from '../../lib/model-loader';
+import { useGLTF } from '@react-three/drei';
 
 export interface FloatingIslandProps {
   isDarkMode?: boolean;
@@ -20,6 +22,9 @@ export function FloatingIsland({ isDarkMode = true }: FloatingIslandProps) {
     house: false,
     trees: Array(3).fill(false)
   });
+  
+  // Load the house GLTF model
+  const { scene: houseModel } = useGLTF('/assets/house.gltf');
 
   // Material colors based on theme
   const materialColors = {
@@ -80,34 +85,13 @@ export function FloatingIsland({ isDarkMode = true }: FloatingIslandProps) {
   }, []);
 
   return (    <>
-      <Particles count={particleCount} color={particleColor} />
+      <Particles count={particleCount} />
       
       <a.group ref={group}>
-        {/* Base island */}
-        <animated.mesh
-          receiveShadow 
-          castShadow 
-          position={[0, 0, 0]}
-          scale={islandSpring.scale}
-          onPointerOver={(e: ThreeEvent<PointerEvent>) => {
-            e.stopPropagation();
-            setHoverStates(prev => ({ ...prev, island: true }));
-            setHoveredItem({ type: 'Mystical Island Base', position: new THREE.Vector3(0, 0, 0) });
-          }}
-          onPointerOut={() => {
-            setHoverStates(prev => ({ ...prev, island: false }));
-            setHoveredItem(null);
-          }}
-        >
-          <cylinderGeometry args={[2, 3, 1, 16]} />
-          <meshPhysicalMaterial 
-            color={materialColors.island}
-            roughness={0.8}
-            metalness={0.2}
-            clearcoat={0.3}
-            clearcoatRoughness={0.2}
-          />
-        </animated.mesh>
+       
+        
+          
+         
 
         {/* Top surface with grass */}
         <mesh receiveShadow castShadow position={[0, 0.5, 0]}>
@@ -123,7 +107,7 @@ export function FloatingIsland({ isDarkMode = true }: FloatingIslandProps) {
 
         {/* House */}
         <animated.group
-          position={[0, 1, 0]}
+          position={[0, 0.7, 0]}
           scale={houseSpring.scale}
           onPointerOver={(e: ThreeEvent<PointerEvent>) => {
             e.stopPropagation();
@@ -135,28 +119,13 @@ export function FloatingIsland({ isDarkMode = true }: FloatingIslandProps) {
             setHoveredItem(null);
           }}
         >
-          {/* House base */}
-          <mesh castShadow>
-            <boxGeometry args={[1, 1, 1]} />
-            <meshPhysicalMaterial
-              color={materialColors.house}
-              roughness={0.3}
-              metalness={0.2}
-              clearcoat={0.5}
-              clearcoatRoughness={0.3}
-            />
-          </mesh>
-          {/* Roof */}
-          <mesh castShadow position={[0, 0.7, 0]}>
-            <coneGeometry args={[0.8, 0.8, 4]} />
-            <meshPhysicalMaterial
-              color={materialColors.roof}
-              roughness={0.4}
-              metalness={0.1}
-              clearcoat={0.3}
-              clearcoatRoughness={0.4}
-            />
-          </mesh>
+          {/* GLTF House Model */}
+          <primitive 
+            object={houseModel.clone()} 
+            scale={0.3} 
+            castShadow 
+            receiveShadow 
+          />
         </animated.group>
 
         {/* Trees */}
@@ -183,30 +152,8 @@ export function FloatingIsland({ isDarkMode = true }: FloatingIslandProps) {
               }));
               setHoveredItem(null);
             }}
-          >
-            {/* Trunk */}
-            <mesh castShadow>
-              <cylinderGeometry args={[0.1, 0.1, 0.5]} />
-              <meshPhysicalMaterial
-                color={materialColors.trunk}
-                roughness={0.6}
-                metalness={0.1}
-                clearcoat={0.2}
-                clearcoatRoughness={0.4}
-              />
-            </mesh>
-            {/* Leaves */}
-            <mesh castShadow position={[0, 0.5, 0]}>
-              <coneGeometry args={[0.4, 1, 8]} />
-              <meshPhysicalMaterial
-                color={materialColors.leaves}
-                roughness={0.4}
-                metalness={0.1}
-                clearcoat={0.3}
-                clearcoatRoughness={0.3}
-              />
-            </mesh>
-          </animated.group>
+          ></animated.group>
+            
         ))}
 
         {/* Tooltip */}
