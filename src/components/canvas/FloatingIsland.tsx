@@ -5,6 +5,7 @@ import gsap from 'gsap';
 import * as THREE from 'three';
 import { Tooltip } from './Tooltip';
 import { Particles } from './Particles';
+import {a} from '@react-spring/three';
 
 export interface FloatingIslandProps {
   isDarkMode?: boolean;
@@ -81,7 +82,7 @@ export function FloatingIsland({ isDarkMode = true }: FloatingIslandProps) {
   return (    <>
       <Particles count={particleCount} color={particleColor} />
       
-      <group ref={group}>
+      <a.group ref={group}>
         {/* Base island */}
         <animated.mesh
           receiveShadow 
@@ -215,7 +216,7 @@ export function FloatingIsland({ isDarkMode = true }: FloatingIslandProps) {
             content={hoveredItem.type}
           />
         )}
-      </group>
+      </a.group>
     </>
   );
 }
